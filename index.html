@@ -20,7 +20,7 @@
         <div class="card face-card" data-id="1" onclick="selectCard(this)">
             <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
             <div class="card-image">
-                <div class="status-badge">✅ Active</div>
+                <div class="status-badge status-not-issued">⏳ Not Issued</div>
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
             </div>
             <div class="card-name">John Doe</div>
@@ -29,7 +29,7 @@
         <div class="card face-card" data-id="2" onclick="selectCard(this)">
             <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
             <div class="card-image">
-                <div class="status-badge">⚠️ Pending</div>
+                <div class="status-badge status-issued">✅ Issued</div>
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
             </div>
             <div class="card-name">Jane Smith</div>
@@ -38,7 +38,7 @@
         <div class="card face-card" data-id="3" onclick="selectCard(this)">
             <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
             <div class="card-image">
-                <div class="status-badge">❌ Banned</div>
+                <div class="status-badge status-not-issued">⏳ Not Issued</div>
                 <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
             </div>
             <div class="card-name">Alex Brown</div>
@@ -63,9 +63,7 @@
 
 <div id="statusModal" class="modal-overlay">
     <div class="modal-window">
-        <h3>Select New Status</h3>
-        <p>Choose the status for the selected face:</p>
-        
+        <h3>Select Status</h3>
         <div class="modal-actions">
             <button class="modal-btn btn-issued" onclick="applyStatus('Issued')">
                 ✅ Issued
@@ -74,12 +72,10 @@
                 ⏳ Not Issued
             </button>
         </div>
-        
         <button class="modal-close" onclick="closeStatusModal()">Cancel</button>
     </div>
 </div>
 
 <script src="script.js"></script>
-
 </body>
 </html>
