@@ -11,33 +11,13 @@
 <div class="container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <h2>Design Specifications: Faces</h2>
-        <button onclick="exportData()" class="save-file-btn">💾 Save Data to File</button>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="resetData()" style="background:#ff4d4d; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer;">Reset to Default</button>
+            <button onclick="exportData()" class="save-file-btn">💾 Download JSON</button>
+        </div>
     </div>
     
-    <div class="grid" id="facesGrid">
-        <div class="card add-new" onclick="addNewFace()">
-            <div class="add-icon">+</div>
-            <div class="add-text">Add new</div>
-        </div>
-
-        <div class="card face-card" data-id="1" onclick="selectCard(this)">
-            <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
-            <div class="card-image">
-                <div class="status-badge status-not-issued">⏳ Not Issued</div>
-                <img src="https://via.placeholder.com/150" alt="Face" class="face-img">
-            </div>
-            <div class="card-name">John Doe</div>
-        </div>
-
-        <div class="card face-card" data-id="2" onclick="selectCard(this)">
-            <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
-            <div class="card-image">
-                <div class="status-badge status-issued">✅ Issued</div>
-                <img src="https://via.placeholder.com/150" alt="Face" class="face-img">
-            </div>
-            <div class="card-name">Jane Smith</div>
-        </div>
-    </div>
+    <div class="grid" id="facesGrid"></div>
 </div>
 
 <div class="bottom-bar">
@@ -45,9 +25,7 @@
         <div class="bar-item active">Faces</div>
         <div class="bar-item">Attempts Recorded</div>
     </div>
-
     <div class="divider"></div>
-
     <div class="bar-section actions-group">
         <div class="bar-item action-btn disabled" onclick="handleAction('status')">Change status</div>
         <div class="bar-item action-btn disabled" onclick="handleAction('edit')">Edit info</div>
@@ -69,21 +47,16 @@
 <div id="editModal" class="modal-overlay">
     <div class="modal-window">
         <h3>Edit Info</h3>
-        
         <div class="edit-form">
             <div class="image-preview-container">
                 <img id="editPreviewImg" src="" alt="Preview">
             </div>
-            
             <label class="custom-file-upload">
                 <input type="file" id="editFileInput" accept="image/*" onchange="previewFile()">
                 📷 Upload New Photo
             </label>
-
-            <label style="text-align: left; width: 100%; font-weight: bold; margin-bottom: 5px;">Full Name:</label>
             <input type="text" id="editNameInput" class="text-input" placeholder="Enter name">
         </div>
-
         <div class="modal-actions" style="flex-direction: row; gap: 10px;">
             <button class="modal-btn btn-save" onclick="saveEditInfo()">Save</button>
             <button class="modal-close" style="margin:0" onclick="closeModal('editModal')">Cancel</button>
