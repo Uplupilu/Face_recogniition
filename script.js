@@ -1,25 +1,107 @@
+// Переменная для хранения ID выбранного лица
 let selectedFaceId = null;
 
-// --- 1. Основные функции выбора ---
-
-function selectCard(element) {
-    const id = element.getAttribute('data-id');
-
-    if (selectedFaceId === id) {
-        deselectAll();
-        selectedFaceId = null;
-        updateActionButtons(false);
-        return;
+// Данные по умолчанию (если память пуста)
+const defaultFaces = [
+    {
+        id: 1,
+        name: "John Doe",
+        status: "Not Issued",
+        image: "https://via.placeholder.com/150"
+    },
+    {
+        id: 2,
+        name: "Jane Smith",
+        status: "Issued",
+        image: "https://via.placeholder.com/150"
+    },
+    {
+        id: 3,
+        name: "Alex Brown",
+        status: "Not Issued",
+        image: "https://via.placeholder.com/150"
     }
+];
 
-    deselectAll();
-    element.classList.add('selected');
-    selectedFaceId = id;
-    updateActionButtons(true);
+// Основной массив данных (State)
+let facesData = [];
+
+// --- 1. Инициализация (При загрузке страницы) ---
+window.onload = function() {
+    loadData();
+    renderFaces();
+};
+
+function loadData() {
+    // Пытаемся достать данные из памяти браузера
+    const stored = localStorage.getItem('facesData');
+    if (stored) {
+        facesData = JSON.parse(stored);
+    } else {
+        // Если памяти нет, грузим дефолт
+        facesData = JSON.parse(JSON.stringify(defaultFaces));
+    }
 }
 
-function deselectAll() {
-    document.querySelectorAll('.face-card').forEach(card => card.classList.remove('selected'));
+function saveData() {
+    // Сохраняем текущий массив в память браузера
+    localStorage.setItem('facesData', JSON.stringify(facesData));
+}
+
+// Сброс (для тестов, красная кнопка)
+function resetData() {
+    if(confirm("Reset all data to default? This cannot be undone.")) {
+        localStorage.removeItem('facesData');
+        loadData();
+        renderFaces();
+        selectedFaceId = null;
+        updateActionButtons(false);
+    }
+}
+
+// --- 2. Рендер (Отрисовка) карточек из данных ---
+function renderFaces() {
+    const grid = document.getElementById('facesGrid');
+    grid.innerHTML = ''; // Очищаем сетку
+
+    // 1. Добавляем кнопку "Add New"
+    const addBtn = document.createElement('div');
+    addBtn.className = 'card add-new';
+    addBtn.onclick = addNewFace;
+    addBtn.innerHTML = '<div class="add-icon">+</div><div class="add-text">Add new</div>';
+    grid.appendChild(addBtn);
+
+    // 2. Добавляем карточки из массива
+    facesData.forEach(face => {
+        const card = document.createElement('div');
+        card.className = `card face-card ${selectedFaceId == face.id ? 'selected' : ''}`;
+        card.setAttribute('data-id', face.id);
+        card.onclick = () => selectCard(face.id);
+
+        const statusClass = face.status === 'Issued' ? 'status-issued' : 'status-not-issued';
+        const statusIcon = face.status === 'Issued' ? '✅' : '⏳';
+
+        card.innerHTML = `
+            <div class="delete-btn" onclick="deleteFace(event, ${face.id})">✕</div>
+            <div class="card-image">
+                <div class="status-badge ${statusClass}">${statusIcon} ${face.status}</div>
+                <img src="${face.image}" alt="Face" class="face-img">
+            </div>
+            <div class="card-name">${face.name}</div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+// --- 3. Выбор карточки ---
+function selectCard(id) {
+    if (selectedFaceId == id) {
+        selectedFaceId = null; // Снять выделение
+    } else {
+        selectedFaceId = id; // Выбрать
+    }
+    renderFaces(); // Перерисовать, чтобы обновить рамки
+    updateActionButtons(selectedFaceId !== null);
 }
 
 function updateActionButtons(isEnabled) {
@@ -28,144 +110,110 @@ function updateActionButtons(isEnabled) {
     });
 }
 
-// --- 2. Обработчик кнопок нижнего бара ---
+// --- 4. Действия (Status, Edit, Delete) ---
 
+// -- Статус --
 function handleAction(type) {
     if (!selectedFaceId) return;
+    if (type === 'status') openModal('statusModal');
+    if (type === 'edit') {
+        prepareEditModal();
+        openModal('editModal');
+    }
+    if (type === 'feedback') alert("Redirecting to Telegram...");
+}
 
-    switch(type) {
-        case 'status':
-            openModal('statusModal');
-            break;
-        case 'edit':
-            prepareEditModal(); // Подготовить данные
-            openModal('editModal');
-            break;
-        case 'feedback':
-            alert("Redirecting to Telegram...");
-            break;
+function applyStatus(newStatus) {
+    // Находим лицо в массиве данных
+    const face = facesData.find(f => f.id == selectedFaceId);
+    if (face) {
+        face.status = newStatus;
+        saveData(); // Сохраняем в память
+        renderFaces(); // Перерисовываем
+    }
+    closeModal('statusModal');
+}
+
+// -- Редактирование --
+function prepareEditModal() {
+    const face = facesData.find(f => f.id == selectedFaceId);
+    if (face) {
+        document.getElementById('editNameInput').value = face.name;
+        document.getElementById('editPreviewImg').src = face.image;
+        document.getElementById('editFileInput').value = "";
     }
 }
 
-// --- 3. Управление Модальными окнами (Общее) ---
-
-function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
+function previewFile() {
+    const preview = document.getElementById('editPreviewImg');
+    const file = document.getElementById('editFileInput').files[0];
+    const reader = new FileReader();
+    reader.onloadend = function () {
+        preview.src = reader.result;
+    }
+    if (file) reader.readAsDataURL(file);
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
+function saveEditInfo() {
+    const newName = document.getElementById('editNameInput').value;
+    const newImgSrc = document.getElementById('editPreviewImg').src;
+    
+    const face = facesData.find(f => f.id == selectedFaceId);
+    if (face) {
+        face.name = newName;
+        face.image = newImgSrc;
+        saveData(); // Сохраняем навсегда
+        renderFaces(); // Обновляем вид
+    }
+    closeModal('editModal');
 }
 
-// Закрытие по клику на фон
+// -- Удаление --
+function deleteFace(event, id) {
+    event.stopPropagation();
+    if (confirm("Delete this face?")) {
+        facesData = facesData.filter(f => f.id != id); // Удаляем из массива
+        if (selectedFaceId == id) {
+            selectedFaceId = null;
+            updateActionButtons(false);
+        }
+        saveData();
+        renderFaces();
+    }
+}
+
+// -- Добавление (Простая логика) --
+function addNewFace() {
+    const newId = Date.now(); // Генерируем уникальный ID
+    const newFace = {
+        id: newId,
+        name: "New Person",
+        status: "Not Issued",
+        image: "https://via.placeholder.com/150"
+    };
+    facesData.push(newFace);
+    saveData();
+    renderFaces();
+    // Сразу выбираем нового, чтобы можно было редактировать
+    selectCard(newId);
+}
+
+// --- 5. Вспомогательные функции ---
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
 window.onclick = function(event) {
     if (event.target.classList.contains('modal-overlay')) {
         event.target.classList.remove('active');
     }
 }
 
-// --- 4. Логика Смены Статуса ---
-
-function applyStatus(newStatus) {
-    if (!selectedFaceId) return;
-    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
-    const badge = card.querySelector('.status-badge');
-
-    if (newStatus === 'Issued') {
-        badge.textContent = '✅ Issued';
-        badge.className = 'status-badge status-issued';
-    } else {
-        badge.textContent = '⏳ Not Issued';
-        badge.className = 'status-badge status-not-issued';
-    }
-    closeModal('statusModal');
-}
-
-// --- 5. Логика Редактирования (Edit Info) ---
-
-function prepareEditModal() {
-    // Получаем текущие данные с карточки
-    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
-    const currentName = card.querySelector('.card-name').textContent;
-    const currentImgSrc = card.querySelector('.face-img').src;
-
-    // Заполняем поля в модальном окне
-    document.getElementById('editNameInput').value = currentName;
-    document.getElementById('editPreviewImg').src = currentImgSrc;
-    document.getElementById('editFileInput').value = ""; // Сброс файла
-}
-
-// Предпросмотр загружаемого файла
-function previewFile() {
-    const preview = document.getElementById('editPreviewImg');
-    const file = document.getElementById('editFileInput').files[0];
-    const reader = new FileReader();
-
-    reader.onloadend = function () {
-        preview.src = reader.result; // Показываем новую картинку
-    }
-
-    if (file) {
-        reader.readAsDataURL(file);
-    }
-}
-
-// Сохранение изменений
-function saveEditInfo() {
-    const newName = document.getElementById('editNameInput').value;
-    const newImgSrc = document.getElementById('editPreviewImg').src;
-
-    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
-    
-    // Обновляем DOM
-    card.querySelector('.card-name').textContent = newName;
-    card.querySelector('.face-img').src = newImgSrc;
-
-    closeModal('editModal');
-}
-
-// --- 6. Экспорт данных в файл (JSON) ---
-
 function exportData() {
-    const faces = [];
-    document.querySelectorAll('.face-card').forEach(card => {
-        const id = card.getAttribute('data-id');
-        const name = card.querySelector('.card-name').textContent;
-        const statusText = card.querySelector('.status-badge').textContent;
-        const imgSrc = card.querySelector('.face-img').src; // Внимание: если картинка большая (base64), файл будет тяжелым
-
-        faces.push({
-            id: id,
-            name: name,
-            status: statusText.includes('Issued') ? 'Issued' : 'Not Issued',
-            image: imgSrc
-        });
-    });
-
-    // Создаем файл для скачивания
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(faces, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(facesData, null, 2));
     const downloadAnchorNode = document.createElement('a');
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", "faces_database.json");
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
-}
-
-// --- 7. Удаление и Добавление ---
-
-function deleteFace(event, btnElement) {
-    event.stopPropagation();
-    if (confirm("Delete this face?")) {
-        const card = btnElement.closest('.card');
-        if (card.classList.contains('selected')) {
-            selectedFaceId = null;
-            updateActionButtons(false);
-        }
-        card.remove();
-    }
-}
-
-function addNewFace() {
-    alert("To add a new face logic, we would clone a card template and append it to the grid.");
 }
