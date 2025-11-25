@@ -1,25 +1,26 @@
 let selectedFaceId = null;
+const modal = document.getElementById('statusModal');
 
-// Функция выбора карточки
+// 1. Выбор карточки
 function selectCard(element) {
     const id = element.getAttribute('data-id');
 
-    // Если кликнули на уже выбранную - снимаем выделение
     if (selectedFaceId === id) {
+        // Если кликнули по той же карточке - снимаем выделение
         deselectAll();
         selectedFaceId = null;
         updateActionButtons(false);
         return;
     }
 
-    // Снимаем старое выделение
+    // Снимаем выделение со всех
     deselectAll();
 
     // Выделяем новую
     element.classList.add('selected');
     selectedFaceId = id;
     
-    // Активируем кнопки
+    // Включаем кнопки
     updateActionButtons(true);
 }
 
@@ -29,7 +30,7 @@ function deselectAll() {
     });
 }
 
-// Обновление состояния кнопок
+// 2. Управление состоянием кнопок (Активно / Неактивно)
 function updateActionButtons(isEnabled) {
     const btns = document.querySelectorAll('.action-btn');
     btns.forEach(btn => {
@@ -41,14 +42,60 @@ function updateActionButtons(isEnabled) {
     });
 }
 
-// Удаление лица
+// 3. Обработка нажатий на кнопки действий
+function handleAction(type) {
+    if (!selectedFaceId) return;
+
+    switch(type) {
+        case 'status':
+            openStatusModal();
+            break;
+        case 'edit':
+            alert("Edit feature placeholder");
+            break;
+        case 'feedback':
+            alert("Feedback feature placeholder");
+            break;
+    }
+}
+
+// 4. Функции Модального окна
+function openStatusModal() {
+    modal.classList.add('active');
+}
+
+function closeStatusModal() {
+    modal.classList.remove('active');
+}
+
+function applyStatus(newStatus) {
+    if (!selectedFaceId) return;
+
+    // Находим выбранную карточку
+    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
+    if (!card) return;
+
+    const badge = card.querySelector('.status-badge');
+
+    // Определяем текст и стиль в зависимости от выбора
+    if (newStatus === 'Issued') {
+        badge.textContent = '✅ Issued';
+        badge.className = 'status-badge status-issued'; // Сброс классов и установка новых
+    } else {
+        badge.textContent = '⏳ Not Issued';
+        badge.className = 'status-badge status-not-issued';
+    }
+
+    closeStatusModal();
+}
+
+// 5. Удаление лица
 function deleteFace(event, btnElement) {
-    event.stopPropagation(); // Предотвращаем выделение карточки при удалении
+    event.stopPropagation(); // Чтобы не выделялась карточка при клике на крестик
     
-    if (confirm("Are you sure you want to delete this face?")) {
+    if (confirm("Are you sure?")) {
         const card = btnElement.closest('.card');
         
-        // Если удаляем выбранную карточку, сбрасываем состояние
         if (card.classList.contains('selected')) {
             selectedFaceId = null;
             updateActionButtons(false);
@@ -58,67 +105,12 @@ function deleteFace(event, btnElement) {
     }
 }
 
-// Добавление (заглушка)
+// 6. Добавление (заглушка)
 function addNewFace() {
-    alert("Opens form: Upload image + Enter name + Status");
+    alert("Add New Face placeholder");
 }
 
-// --- Логика модального окна статусов ---
-
-const modal = document.getElementById('statusModal');
-
-function handleAction(type) {
-    if (!selectedFaceId) {
-        alert("Please select a face first.");
-        return;
-    }
-
-    switch(type) {
-        case 'status':
-            // Открываем модальное окно
-            modal.classList.add('active');
-            break;
-        case 'edit':
-            alert(`Open Edit Form for ID: ${selectedFaceId}`);
-            break;
-        case 'feedback':
-            alert(`Opening Telegram chat with reference to ID: ${selectedFaceId}`);
-            break;
-    }
-}
-
-function closeStatusModal() {
-    modal.classList.remove('active');
-}
-
-// Применяем статус
-function applyStatus(newStatus) {
-    if (!selectedFaceId) return;
-
-    // Находим карточку в DOM
-    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
-    const badge = card.querySelector('.status-badge');
-
-    // Обновляем текст
-    // Добавляем иконку для красоты
-    const icon = newStatus === 'Issued' ? '✅' : '⏳';
-    badge.textContent = `${icon} ${newStatus}`;
-
-    // Сбрасываем старые классы цветов
-    badge.classList.remove('status-issued', 'status-not-issued');
-
-    // Добавляем новый класс цвета
-    if (newStatus === 'Issued') {
-        badge.classList.add('status-issued');
-    } else {
-        badge.classList.add('status-not-issued');
-    }
-
-    // Закрываем окно
-    closeStatusModal();
-}
-
-// Закрытие модального окна при клике вне его (на темный фон)
+// Закрытие модального окна при клике на темный фон
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
         closeStatusModal();
