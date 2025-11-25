@@ -9,7 +9,10 @@
 <body>
 
 <div class="container">
-    <h2>Design Specifications: Faces</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Design Specifications: Faces</h2>
+        <button onclick="exportData()" class="save-file-btn">💾 Save Data to File</button>
+    </div>
     
     <div class="grid" id="facesGrid">
         <div class="card add-new" onclick="addNewFace()">
@@ -21,7 +24,7 @@
             <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
             <div class="card-image">
                 <div class="status-badge status-not-issued">⏳ Not Issued</div>
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
+                <img src="https://via.placeholder.com/150" alt="Face" class="face-img">
             </div>
             <div class="card-name">John Doe</div>
         </div>
@@ -30,18 +33,9 @@
             <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
             <div class="card-image">
                 <div class="status-badge status-issued">✅ Issued</div>
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
+                <img src="https://via.placeholder.com/150" alt="Face" class="face-img">
             </div>
             <div class="card-name">Jane Smith</div>
-        </div>
-
-        <div class="card face-card" data-id="3" onclick="selectCard(this)">
-            <div class="delete-btn" onclick="deleteFace(event, this)">✕</div>
-            <div class="card-image">
-                <div class="status-badge status-not-issued">⏳ Not Issued</div>
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"></circle><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"></path></svg>
-            </div>
-            <div class="card-name">Alex Brown</div>
         </div>
     </div>
 </div>
@@ -65,14 +59,35 @@
     <div class="modal-window">
         <h3>Select Status</h3>
         <div class="modal-actions">
-            <button class="modal-btn btn-issued" onclick="applyStatus('Issued')">
-                ✅ Issued
-            </button>
-            <button class="modal-btn btn-not-issued" onclick="applyStatus('Not Issued')">
-                ⏳ Not Issued
-            </button>
+            <button class="modal-btn btn-issued" onclick="applyStatus('Issued')">✅ Issued</button>
+            <button class="modal-btn btn-not-issued" onclick="applyStatus('Not Issued')">⏳ Not Issued</button>
         </div>
-        <button class="modal-close" onclick="closeStatusModal()">Cancel</button>
+        <button class="modal-close" onclick="closeModal('statusModal')">Cancel</button>
+    </div>
+</div>
+
+<div id="editModal" class="modal-overlay">
+    <div class="modal-window">
+        <h3>Edit Info</h3>
+        
+        <div class="edit-form">
+            <div class="image-preview-container">
+                <img id="editPreviewImg" src="" alt="Preview">
+            </div>
+            
+            <label class="custom-file-upload">
+                <input type="file" id="editFileInput" accept="image/*" onchange="previewFile()">
+                📷 Upload New Photo
+            </label>
+
+            <label style="text-align: left; width: 100%; font-weight: bold; margin-bottom: 5px;">Full Name:</label>
+            <input type="text" id="editNameInput" class="text-input" placeholder="Enter name">
+        </div>
+
+        <div class="modal-actions" style="flex-direction: row; gap: 10px;">
+            <button class="modal-btn btn-save" onclick="saveEditInfo()">Save</button>
+            <button class="modal-close" style="margin:0" onclick="closeModal('editModal')">Cancel</button>
+        </div>
     </div>
 </div>
 
