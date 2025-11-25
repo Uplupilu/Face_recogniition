@@ -61,6 +61,24 @@
     </div>
 </div>
 
+<div id="statusModal" class="modal-overlay">
+    <div class="modal-window">
+        <h3>Select New Status</h3>
+        <p>Choose the status for the selected face:</p>
+        
+        <div class="modal-actions">
+            <button class="modal-btn btn-issued" onclick="applyStatus('Issued')">
+                ✅ Issued
+            </button>
+            <button class="modal-btn btn-not-issued" onclick="applyStatus('Not Issued')">
+                ⏳ Not Issued
+            </button>
+        </div>
+        
+        <button class="modal-close" onclick="closeStatusModal()">Cancel</button>
+    </div>
+</div>
+
 <script src="script.js"></script>
 
 </body>
