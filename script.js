@@ -63,7 +63,10 @@ function addNewFace() {
     alert("Opens form: Upload image + Enter name + Status");
 }
 
-// Обработка действий
+// --- Логика модального окна статусов ---
+
+const modal = document.getElementById('statusModal');
+
 function handleAction(type) {
     if (!selectedFaceId) {
         alert("Please select a face first.");
@@ -72,7 +75,8 @@ function handleAction(type) {
 
     switch(type) {
         case 'status':
-            alert(`Open Status Picker for ID: ${selectedFaceId}`);
+            // Открываем модальное окно
+            modal.classList.add('active');
             break;
         case 'edit':
             alert(`Open Edit Form for ID: ${selectedFaceId}`);
@@ -82,3 +86,41 @@ function handleAction(type) {
             break;
     }
 }
+
+function closeStatusModal() {
+    modal.classList.remove('active');
+}
+
+// Применяем статус
+function applyStatus(newStatus) {
+    if (!selectedFaceId) return;
+
+    // Находим карточку в DOM
+    const card = document.querySelector(`.face-card[data-id="${selectedFaceId}"]`);
+    const badge = card.querySelector('.status-badge');
+
+    // Обновляем текст
+    // Добавляем иконку для красоты
+    const icon = newStatus === 'Issued' ? '✅' : '⏳';
+    badge.textContent = `${icon} ${newStatus}`;
+
+    // Сбрасываем старые классы цветов
+    badge.classList.remove('status-issued', 'status-not-issued');
+
+    // Добавляем новый класс цвета
+    if (newStatus === 'Issued') {
+        badge.classList.add('status-issued');
+    } else {
+        badge.classList.add('status-not-issued');
+    }
+
+    // Закрываем окно
+    closeStatusModal();
+}
+
+// Закрытие модального окна при клике вне его (на темный фон)
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        closeStatusModal();
+    }
+});
