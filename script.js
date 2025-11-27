@@ -36,14 +36,21 @@ function resetData() {
     }
 }
 
-// --- Рендеринг ---
+// --- Рендеринг (Самая важная часть) ---
 function renderFaces() {
     const grid = document.getElementById('facesGrid');
     
-    // Удаляем только карточки (не кнопку Add New)
-    const existingCards = grid.querySelectorAll('.face-card');
-    existingCards.forEach(card => card.remove());
+    // 1. Очищаем сетку полностью
+    grid.innerHTML = '';
 
+    // 2. Сначала создаем и добавляем кнопку "Add New"
+    const addBtn = document.createElement('div');
+    addBtn.className = 'card add-new';
+    addBtn.onclick = addNewFace;
+    addBtn.innerHTML = '<div class="add-icon">+</div><div class="add-text">Add new</div>';
+    grid.appendChild(addBtn);
+
+    // 3. Потом добавляем все карточки из памяти
     facesData.forEach(face => {
         const card = document.createElement('div');
         card.className = `card face-card ${selectedFaceId == face.id ? 'selected' : ''}`;
@@ -80,7 +87,7 @@ function addNewFace() {
     selectCard(newId);
 }
 
-// --- Логика выбора ---
+// --- Выбор ---
 function selectCard(id) {
     if (selectedFaceId == id) {
         selectedFaceId = null;
@@ -97,21 +104,16 @@ function updateActionButtons(isEnabled) {
     });
 }
 
-// --- ДЕЙСТВИЯ (ОБНОВЛЕНО ЗДЕСЬ) ---
+// --- Действия (Telegram ссылка здесь) ---
 function handleAction(type) {
     if (!selectedFaceId) return;
     
-    if (type === 'status') {
-        openModal('statusModal');
-    }
-    
+    if (type === 'status') openModal('statusModal');
     if (type === 'edit') {
         prepareEditModal();
         openModal('editModal');
     }
-    
     if (type === 'feedback') {
-        // Открываем ссылку в новой вкладке
         window.open('https://t.me/MainMaths', '_blank');
     }
 }
@@ -175,7 +177,7 @@ function deleteFace(event, id) {
     }
 }
 
-// --- Модальные окна ---
+// --- Утилиты ---
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
