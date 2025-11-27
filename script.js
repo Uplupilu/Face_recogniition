@@ -1,56 +1,33 @@
-// Переменная для хранения ID выбранного лица
 let selectedFaceId = null;
 
-// Данные по умолчанию (если память пуста)
 const defaultFaces = [
-    {
-        id: 1,
-        name: "John Doe",
-        status: "Not Issued",
-        image: "https://via.placeholder.com/150"
-    },
-    {
-        id: 2,
-        name: "Jane Smith",
-        status: "Issued",
-        image: "https://via.placeholder.com/150"
-    },
-    {
-        id: 3,
-        name: "Alex Brown",
-        status: "Not Issued",
-        image: "https://via.placeholder.com/150"
-    }
+    { id: 1, name: "John Doe", status: "Not Issued", image: "https://via.placeholder.com/150" },
+    { id: 2, name: "Jane Smith", status: "Issued", image: "https://via.placeholder.com/150" }
 ];
 
-// Основной массив данных (State)
 let facesData = [];
 
-// --- 1. Инициализация (При загрузке страницы) ---
+// --- Инициализация ---
 window.onload = function() {
     loadData();
     renderFaces();
 };
 
 function loadData() {
-    // Пытаемся достать данные из памяти браузера
     const stored = localStorage.getItem('facesData');
     if (stored) {
         facesData = JSON.parse(stored);
     } else {
-        // Если памяти нет, грузим дефолт
         facesData = JSON.parse(JSON.stringify(defaultFaces));
     }
 }
 
 function saveData() {
-    // Сохраняем текущий массив в память браузера
     localStorage.setItem('facesData', JSON.stringify(facesData));
 }
 
-// Сброс (для тестов, красная кнопка)
 function resetData() {
-    if(confirm("Reset all data to default? This cannot be undone.")) {
+    if(confirm("Reset all data to default?")) {
         localStorage.removeItem('facesData');
         loadData();
         renderFaces();
@@ -59,19 +36,14 @@ function resetData() {
     }
 }
 
-// --- 2. Рендер (Отрисовка) карточек из данных ---
+// --- Рендеринг ---
 function renderFaces() {
     const grid = document.getElementById('facesGrid');
-    grid.innerHTML = ''; // Очищаем сетку
+    
+    // Удаляем только карточки (не кнопку Add New)
+    const existingCards = grid.querySelectorAll('.face-card');
+    existingCards.forEach(card => card.remove());
 
-    // 1. Добавляем кнопку "Add New"
-    const addBtn = document.createElement('div');
-    addBtn.className = 'card add-new';
-    addBtn.onclick = addNewFace;
-    addBtn.innerHTML = '<div class="add-icon">+</div><div class="add-text">Add new</div>';
-    grid.appendChild(addBtn);
-
-    // 2. Добавляем карточки из массива
     facesData.forEach(face => {
         const card = document.createElement('div');
         card.className = `card face-card ${selectedFaceId == face.id ? 'selected' : ''}`;
@@ -93,14 +65,29 @@ function renderFaces() {
     });
 }
 
-// --- 3. Выбор карточки ---
+// --- Добавление ---
+function addNewFace() {
+    const newId = Date.now();
+    const newFace = {
+        id: newId,
+        name: "New Person",
+        status: "Not Issued",
+        image: "https://via.placeholder.com/150"
+    };
+    facesData.push(newFace);
+    saveData();
+    renderFaces();
+    selectCard(newId);
+}
+
+// --- Логика выбора ---
 function selectCard(id) {
     if (selectedFaceId == id) {
-        selectedFaceId = null; // Снять выделение
+        selectedFaceId = null;
     } else {
-        selectedFaceId = id; // Выбрать
+        selectedFaceId = id;
     }
-    renderFaces(); // Перерисовать, чтобы обновить рамки
+    renderFaces();
     updateActionButtons(selectedFaceId !== null);
 }
 
@@ -110,31 +97,37 @@ function updateActionButtons(isEnabled) {
     });
 }
 
-// --- 4. Действия (Status, Edit, Delete) ---
-
-// -- Статус --
+// --- ДЕЙСТВИЯ (ОБНОВЛЕНО ЗДЕСЬ) ---
 function handleAction(type) {
     if (!selectedFaceId) return;
-    if (type === 'status') openModal('statusModal');
+    
+    if (type === 'status') {
+        openModal('statusModal');
+    }
+    
     if (type === 'edit') {
         prepareEditModal();
         openModal('editModal');
     }
-    if (type === 'feedback') alert("Redirecting to Telegram...");
+    
+    if (type === 'feedback') {
+        // Открываем ссылку в новой вкладке
+        window.open('https://t.me/MainMaths', '_blank');
+    }
 }
 
+// --- Статус ---
 function applyStatus(newStatus) {
-    // Находим лицо в массиве данных
     const face = facesData.find(f => f.id == selectedFaceId);
     if (face) {
         face.status = newStatus;
-        saveData(); // Сохраняем в память
-        renderFaces(); // Перерисовываем
+        saveData();
+        renderFaces();
     }
     closeModal('statusModal');
 }
 
-// -- Редактирование --
+// --- Редактирование ---
 function prepareEditModal() {
     const face = facesData.find(f => f.id == selectedFaceId);
     if (face) {
@@ -162,17 +155,17 @@ function saveEditInfo() {
     if (face) {
         face.name = newName;
         face.image = newImgSrc;
-        saveData(); // Сохраняем навсегда
-        renderFaces(); // Обновляем вид
+        saveData();
+        renderFaces();
     }
     closeModal('editModal');
 }
 
-// -- Удаление --
+// --- Удаление ---
 function deleteFace(event, id) {
     event.stopPropagation();
     if (confirm("Delete this face?")) {
-        facesData = facesData.filter(f => f.id != id); // Удаляем из массива
+        facesData = facesData.filter(f => f.id != id);
         if (selectedFaceId == id) {
             selectedFaceId = null;
             updateActionButtons(false);
@@ -182,23 +175,7 @@ function deleteFace(event, id) {
     }
 }
 
-// -- Добавление (Простая логика) --
-function addNewFace() {
-    const newId = Date.now(); // Генерируем уникальный ID
-    const newFace = {
-        id: newId,
-        name: "New Person",
-        status: "Not Issued",
-        image: "https://via.placeholder.com/150"
-    };
-    facesData.push(newFace);
-    saveData();
-    renderFaces();
-    // Сразу выбираем нового, чтобы можно было редактировать
-    selectCard(newId);
-}
-
-// --- 5. Вспомогательные функции ---
+// --- Модальные окна ---
 function openModal(id) { document.getElementById(id).classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
