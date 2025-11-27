@@ -40,17 +40,12 @@ function resetData() {
 function renderFaces() {
     const grid = document.getElementById('facesGrid');
     
-    // 1. Очищаем сетку полностью
-    grid.innerHTML = '';
+    // ВАЖНО: Мы находим и удаляем ТОЛЬКО карточки профилей (.face-card).
+    // Кнопку .add-new мы НЕ трогаем, она остается на месте.
+    const existingCards = grid.querySelectorAll('.face-card');
+    existingCards.forEach(card => card.remove());
 
-    // 2. Сначала создаем и добавляем кнопку "Add New"
-    const addBtn = document.createElement('div');
-    addBtn.className = 'card add-new';
-    addBtn.onclick = addNewFace;
-    addBtn.innerHTML = '<div class="add-icon">+</div><div class="add-text">Add new</div>';
-    grid.appendChild(addBtn);
-
-    // 3. Потом добавляем все карточки из памяти
+    // Теперь добавляем карточки из памяти после кнопки
     facesData.forEach(face => {
         const card = document.createElement('div');
         card.className = `card face-card ${selectedFaceId == face.id ? 'selected' : ''}`;
